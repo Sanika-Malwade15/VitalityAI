@@ -67,8 +67,12 @@ Designed with a modern, responsive architecture, VitalityAI combines intelligent
 * RESTful API Communication
 * JSON Data Exchange
 
----
 
+<img src="assets/screenshots/Dashboard.jpeg" width="350" alt="Dashboard Page">
+<img src="assets/screenshots/calender.jpeg" width="350" alt="Calender Page">
+<img src="assets/screenshots/LoginRegister.jpeg" width="350" alt="LoginRegister Page">
+<img src="assets/screenshots/plan generator.jpeg" width="350" alt="Plan Page">
+<img src="assets/screenshots/receipe suggestion.jpeg" width="350" alt="Reciepe Page">
 #  Architecture
 
 ```text
