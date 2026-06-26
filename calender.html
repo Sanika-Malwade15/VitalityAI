@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="VitalityDash">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Scheduler | VitalityAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        brand: { light: '#F0F9F1', medium: '#10B981', dark: '#064E3B' },
+                        primary: '#10B981'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Quicksand', sans-serif; background-color: #F8FAF9; }
+        .day-cell { min-height: 110px; transition: all 0.2s ease; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
+        .day-cell:hover { background-color: #f8fafc; cursor: pointer; }
+        .selected-day { border: 2px solid #10B981 !important; background-color: #ecfdf5 !important; z-index: 10; }
+        .modal-overlay { background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); }
+        .meal-dot { width: 6px; height: 6px; border-radius: 99px; }
+    </style>
+</head>
+<body ng-controller="CalendarController" class="p-4 md:p-10">
+
+    <div ng-if="showModal" class="fixed inset-0 z-[100] modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl scale-in-center">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">Add Extra Meal</h2>
+                <button ng-click="closeModal()" class="text-slate-400 hover:text-red-500 text-3xl">&times;</button>
+            </div>
+            
+            <div class="space-y-4">
+                <input type="text" ng-model="newMeal.name" placeholder="Meal Name (e.g. Protein Shake)" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-medium outline-none">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" ng-model="newMeal.time" placeholder="Time (e.g. 4:00 PM)" class="p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-medium outline-none">
+                    <input type="number" ng-model="newMeal.cal" placeholder="Calories" class="p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-brand-medium outline-none">
+                </div>
+            </div>
+
+            <button ng-click="saveCustomMeal()" class="w-full bg-brand-medium text-white p-5 rounded-2xl font-bold mt-8 shadow-lg active:scale-95 transition-all">Save to Schedule</button>
+        </div>
+    </div>
+<a href="dashboard.html" 
+   class="inline-flex items-center gap-2 mb-6 group transition-all duration-300">
+    <div class="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 flex items-center justify-center group-hover:bg-brand-medium group-hover:border-brand-medium transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" 
+             class="text-slate-600 group-hover:text-white transition-colors">
+            <path d="m15 18-6-6 6-6"/>
+        </svg>
+    </div>
+    <span class="text-sm font-bold text-slate-500 group-hover:text-brand-dark tracking-wide transition-colors">
+        Back to Dashboard
+    </span>
+</a>
+    <div class="max-w-7xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+            <div>
+                <h1 class="text-4xl font-bold text-slate-900">Health Calendar</h1>
+                <p class="text-slate-500">AI Plan for <span class="text-brand-medium font-bold">{{selectedDate | date:'fullDate'}}</span></p>
+            </div>
+            <button ng-click="openModal()" class="bg-brand-medium text-white px-8 py-4 rounded-2xl font-bold shadow-xl hover:bg-brand-dark transition-all flex items-center gap-2">
+                <span>+</span> Add Custom Meal
+            </button>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+            <div class="flex-grow bg-white rounded-[2.5rem] shadow-premium border border-slate-100 overflow-hidden">
+                <div class="flex items-center justify-between p-8 border-b">
+                    <h2 class="text-2xl font-bold text-slate-800">{{currentMonthName}} {{currentYear}}</h2>
+                    <div class="flex gap-2">
+                        <button ng-click="prevMonth()" class="p-3 bg-slate-50 rounded-xl">⬅️</button>
+                        <button ng-click="nextMonth()" class="p-3 bg-slate-50 rounded-xl">➡️</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-7 bg-slate-50 text-center py-4 text-[10px] font-black uppercase text-slate-400">
+                    <div ng-repeat="d in ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']">{{d}}</div>
+                </div>
+                <div class="grid grid-cols-7">
+                    <div ng-repeat="cell in calendarDays" ng-click="selectDate(cell)" class="day-cell p-3 relative" ng-class="{'opacity-20': !cell.isCurrentMonth, 'selected-day': cell.isSelected}">
+                        <span class="text-sm font-bold">{{cell.date.getDate()}}</span>
+                        <div class="mt-2 flex flex-wrap gap-1">
+                            <div ng-repeat="m in cell.meals" class="meal-dot" ng-style="{'background-color': m.isAI ? '#10B981' : '#6366F1'}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-96 shrink-0">
+                <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100 sticky top-10">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-2 h-8 bg-brand-medium rounded-full"></div>
+                        <h3 class="text-2xl font-bold">Daily Plan</h3>
+                    </div>
+
+                    <div class="space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
+                        <div ng-repeat="item in dailySchedule" class="relative pl-10 group">
+                            <div class="absolute left-0 top-1 w-8 h-8 rounded-full bg-white border-2 flex items-center justify-center z-10" ng-class="item.isAI ? 'border-brand-medium' : 'border-indigo-500'">
+                                <span class="text-xs">{{item.isAI ? '🤖' : '👤'}}</span>
+                            </div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{{item.time}}</p>
+                                    <h4 class="font-bold text-slate-800 leading-tight">{{item.name}}</h4>
+                                    <p class="text-xs font-bold text-brand-medium mt-1">{{item.cal}} kcal</p>
+                                </div>
+                                <button ng-if="!item.isAI" ng-click="removeMeal($index)" class="text-slate-300 hover:text-red-500 transition-colors text-lg">&times;</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-10 pt-6 border-t border-dashed">
+                        <div class="flex justify-between text-sm font-bold">
+                            <span class="text-slate-500">Total Calories</span>
+                            <span class="text-brand-dark">{{getTotalCals()}} kcal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var app = angular.module('VitalityDash', []);
+        app.controller('CalendarController', function($scope) {
+            $scope.today = new Date();
+            $scope.selectedDate = new Date();
+            $scope.viewDate = new Date();
+            $scope.showModal = false;
+            $scope.allMeals = {};
+            $scope.newMeal = { name: '', time: '', cal: null, isAI: false };
+
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+            // FUNCTION: Generate 3 AI Meals by Default
+            $scope.getAIDefaults = function() {
+                return [
+                    { time: '08:30 AM', name: 'AI Breakfast Bowl', cal: 450, isAI: true },
+                    { time: '01:00 PM', name: 'AI Power Salad', cal: 600, isAI: true },
+                    { time: '07:30 PM', name: 'AI Protein Dinner', cal: 550, isAI: true }
+                ];
+            };
+
+            $scope.generateCalendar = function() {
+                $scope.currentMonthName = monthNames[$scope.viewDate.getMonth()];
+                $scope.currentYear = $scope.viewDate.getFullYear();
+                let start = new Date($scope.viewDate.getFullYear(), $scope.viewDate.getMonth(), 1);
+                start.setDate(start.getDate() - start.getDay());
+
+                let days = [];
+                let curr = new Date(start);
+                for (let i = 0; i < 42; i++) {
+                    let dStr = curr.toDateString();
+                    // If no meals exist yet, give it the 3 default AI meals
+                    if(!$scope.allMeals[dStr]) { $scope.allMeals[dStr] = $scope.getAIDefaults(); }
+
+                    days.push({
+                        date: new Date(curr),
+                        isCurrentMonth: curr.getMonth() === $scope.viewDate.getMonth(),
+                        isSelected: curr.toDateString() === $scope.selectedDate.toDateString(),
+                        meals: $scope.allMeals[dStr]
+                    });
+                    curr.setDate(curr.getDate() + 1);
+                }
+                $scope.calendarDays = days;
+                $scope.dailySchedule = $scope.allMeals[$scope.selectedDate.toDateString()];
+            };
+
+            $scope.selectDate = function(cell) {
+                $scope.selectedDate = cell.date;
+                $scope.calendarDays.forEach(d => d.isSelected = (d.date.toDateString() === cell.date.toDateString()));
+                $scope.dailySchedule = $scope.allMeals[$scope.selectedDate.toDateString()];
+            };
+
+            $scope.openModal = () => { $scope.showModal = true; };
+            $scope.closeModal = () => { $scope.showModal = false; };
+
+            $scope.saveCustomMeal = function() {
+                if(!$scope.newMeal.name || !$scope.newMeal.cal) return alert("Fill in details!");
+                let dStr = $scope.selectedDate.toDateString();
+                $scope.allMeals[dStr].push(angular.copy($scope.newMeal));
+                $scope.newMeal = { name: '', time: '', cal: null, isAI: false };
+                $scope.showModal = false;
+                $scope.generateCalendar();
+            };
+
+            $scope.removeMeal = (index) => { $scope.dailySchedule.splice(index, 1); };
+            $scope.getTotalCals = () => { return $scope.dailySchedule ? $scope.dailySchedule.reduce((s, m) => s + m.cal, 0) : 0; };
+            $scope.nextMonth = () => { $scope.viewDate.setMonth($scope.viewDate.getMonth()+1); $scope.generateCalendar(); };
+            $scope.prevMonth = () => { $scope.viewDate.setMonth($scope.viewDate.getMonth()-1); $scope.generateCalendar(); };
+
+            $scope.generateCalendar();
+        });
+    </script>
+</body>
+</html>

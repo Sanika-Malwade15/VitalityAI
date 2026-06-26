@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="VitalityDash">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VitalityAI | Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: #F8FAF9; 
+            color: #1E293B; 
+            min-height: 100vh; 
+        }
+        
+        /* Soft Light Mesh Background */
+        .mesh-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background: radial-gradient(circle at 0% 0%, #E7F5EE 0%, transparent 40%),
+                        radial-gradient(circle at 100% 100%, #F0F4F8 0%, transparent 40%);
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .nav-link { 
+            padding: 0.5rem 1rem; border-radius: 0.75rem; transition: all 0.3s ease; 
+            font-weight: 700; color: #64748B; font-size: 0.875rem;
+        }
+        .nav-link:hover { color: #10B981; background: #F1F5F9; }
+
+        /* Pro Feature Highlight */
+        .pro-feature {
+            background: #10B981;
+            color: white !important;
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
+        }
+
+        .meal-card {
+            background: white;
+            border: 1px solid #E2E8F0;
+            border-radius: 2.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .meal-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.05), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    </style>
+</head>
+<body ng-controller="HubController">
+
+    <div class="mesh-bg"></div>
+
+    <nav class="glass-nav px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-emerald-200">V</div>
+                <span class="text-xl font-extrabold tracking-tighter text-slate-800">VitalityAI</span>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-6">
+                <a href="gallery.html" class="nav-link">Meal Gallery</a>
+                <a href="calender.html" class="nav-link">Calendar</a>
+                <a href="bmiCalculator.html" class="nav-link pro-feature">BMI Calculator <span class="text-[9px] ml-1 uppercase bg-white/20 px-1.5 py-0.5 rounded">Pro</span></a>
+                <a href="explore.html" class="nav-link">Explore Us</a>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3 border-l border-slate-200 pl-4">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-xs font-bold text-slate-800 leading-none" ng-bind="userName"></p>
+                        <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Premium User</p>
+                    </div>
+                    <button class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-emerald-500 shadow-sm">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                    </button>
+                 <a href="index.html" 
+   ng-click="logout()" 
+   class="text-xs font-bold text-slate-400 hover:text-red-500 uppercase tracking-widest transition-all flex items-center gap-2">
+    <i data-lucide="log-out" class="w-4 h-4"></i>
+    <span>Sign Out</span>
+</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        <header class="mb-12">
+            <h1 class="text-5xl font-extrabold tracking-tighter text-slate-900 mb-2">Vitality Hub.</h1>
+            <p class="text-xl text-slate-500 font-medium">Welcome Back, <span class="text-emerald-600" ng-bind="userName"></span>. Ready to optimize your day?</p>
+        </header>
+
+        <section class="grid lg:grid-cols-3 gap-10">
+            
+            <aside class="lg:col-span-1 space-y-6">
+                
+                <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm h-fit">
+                    <div class="flex items-center gap-3 mb-8">
+                        <div class="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                            <i data-lucide="sparkles" class="w-5 h-5"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800">AI Meal Plan</h3>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Diet Style</label>
+                            <select ng-model="form.diet" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                <option value="Standard">Standard (High Protein)</option>
+                                <option value="Vegan">Vegan / Plant Based</option>
+                                <option value="Keto">Keto (Low Carb)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Current Goal</label>
+                            <select ng-model="form.goal" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                <option value="Gain">Muscle Gain</option>
+                                <option value="Loss">Fat Loss</option>
+                                <option value="Maintenance">Equilibrium</option>
+                            </select>
+                        </div>
+                        <button ng-click="generateMeal()" class="w-full py-4 bg-slate-900 hover:bg-emerald-600 text-white font-bold rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg">
+                            GENERATE RECIPE <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm group">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-xl">💧</div>
+                            <div>
+                                <h3 class="text-xs font-black text-slate-900 uppercase tracking-tighter leading-none">Hydration Logic</h3>
+                                <p class="text-[9px] font-black text-emerald-600 uppercase tracking-widest mt-1">H2O Monitor</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xl font-black text-slate-900">{{waterIntake}}L</div>
+                            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Goal: {{waterGoal}}L</div>
+                        </div>
+                    </div>
+
+                    <div class="relative h-2.5 w-full bg-slate-100 rounded-full overflow-hidden mb-6">
+                        <div class="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-700 ease-out"
+                             ng-style="{ 'width': getWaterProgress() + '%' }">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <button ng-click="addWater(0.25)" class="py-3 rounded-xl border border-slate-100 bg-slate-50 text-[10px] font-black text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-95 uppercase">+0.25L</button>
+                        <button ng-click="addWater(0.5)" class="py-3 rounded-xl border border-slate-100 bg-slate-50 text-[10px] font-black text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-95 uppercase">+0.5L</button>
+                        <button ng-click="addWater(1.0)" class="py-3 rounded-xl border border-slate-100 bg-slate-50 text-[10px] font-black text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-95 uppercase">+1.0L</button>
+                    </div>
+
+                    <button ng-click="waterIntake = 0" class="w-full mt-4 text-[9px] font-bold text-slate-300 hover:text-red-400 uppercase tracking-widest transition-colors">
+                        Reset Counter
+                    </button>
+                </div>
+            </aside>
+
+            <div class="lg:col-span-2">
+                
+                <div ng-if="!currentMeal" class="h-full min-h-[500px] bg-emerald-50/30 border-2 border-dashed border-emerald-100 rounded-[2.5rem] flex flex-col items-center justify-center text-emerald-200">
+                    <i data-lucide="chef-hat" class="w-20 h-20 mb-4"></i>
+                    <p class="font-bold text-emerald-600/40">AI is waiting for your inputs...</p>
+                </div>
+
+                <div ng-if="currentMeal" class="meal-card shimmer animate-in bg-white group shadow-sm rounded-[2.5rem] overflow-hidden">
+                    
+                    <div class="relative overflow-hidden">
+                        <img ng-src="{{currentMeal.image}}" class="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-700" alt="Meal">
+                        
+                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <button ng-click="openRecipe()" class="bg-white text-slate-900 px-6 py-3 rounded-2xl font-black shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all flex items-center gap-2">
+                                <i data-lucide="book-open" class="w-4 h-4 text-emerald-500"></i> VIEW RECIPE
+                            </button>
+                        </div>
+                        
+                        <div class="absolute top-6 left-6">
+                            <span class="px-4 py-1.5 bg-white/90 backdrop-blur-md text-slate-900 text-[11px] font-extrabold uppercase rounded-full shadow-lg" ng-bind="currentMeal.type"></span>
+                        </div>
+                    </div>
+
+                    <div class="p-10">
+                        <div class="flex justify-between items-end mb-8">
+                            <div>
+                                <p class="text-[11px] text-emerald-600 font-black uppercase tracking-widest mb-1">AI Recommendation</p>
+                                <h2 class="text-4xl font-black text-slate-900" ng-bind="currentMeal.name"></h2>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-4xl font-black text-slate-900" ng-bind="currentMeal.calories"></p>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Total Calories</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-6">
+                            <div class="bg-slate-50 p-5 rounded-3xl border border-slate-100 text-center transition-all hover:bg-emerald-50 hover:border-emerald-200">
+                                <p class="text-emerald-600 font-black text-2xl">{{currentMeal.protein}}g</p>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Protein</p>
+                            </div>
+                            <div class="bg-slate-50 p-5 rounded-3xl border border-slate-100 text-center transition-all hover:bg-blue-50 hover:border-blue-200">
+                                <p class="text-blue-600 font-black text-2xl">{{currentMeal.carbs}}g</p>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Carbs</p>
+                            </div>
+                            <div class="bg-slate-50 p-5 rounded-3xl border border-slate-100 text-center transition-all hover:bg-orange-50 hover:border-orange-200">
+                                <p class="text-orange-500 font-black text-2xl">{{currentMeal.fats}}g</p>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Fats</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-20 py-12">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-slate-400 text-xs font-bold uppercase tracking-widest">© 2026 VitalityAI Healthcare Systems</div>
+            <div class="flex gap-10">
+                <a href="#" class="text-slate-400 hover:text-emerald-600 text-xs font-bold uppercase transition-colors">Privacy Policy</a>
+                <a href="#" class="text-slate-400 hover:text-emerald-600 text-xs font-bold uppercase transition-colors">Terms of Use</a>
+                <a href="#" class="text-slate-400 hover:text-emerald-600 text-xs font-bold uppercase transition-colors">Contact API</a>
+            </div>
+        </div>
+    </footer>
+
+    <div ng-if="showRecipe" class="fixed inset-0 z-[300] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" ng-click="closeRecipe()"></div>
+        
+        <div class="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl relative z-10 overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div class="relative h-56">
+                <img ng-src="{{currentMeal.image}}" class="w-full h-full object-cover">
+                <button ng-click="closeRecipe()" class="absolute top-6 right-6 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all text-slate-900">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-8 md:p-12 overflow-y-auto max-h-[60vh]">
+                <h2 class="text-3xl font-black text-slate-900 mb-6" ng-bind="currentMeal.name"></h2>
+                
+                <div class="grid md:grid-cols-2 gap-10">
+                    <div>
+                        <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-5 flex items-center gap-2">
+                            <i data-lucide="shopping-basket" class="w-4 h-4"></i> Ingredients
+                        </h4>
+                        <ul class="space-y-3">
+                            <li ng-repeat="item in currentMeal.recipe.ingredients" class="flex items-start gap-3 text-sm text-slate-600 font-semibold">
+                                <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-1.5 shrink-0"></span>
+                                {{item}}
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 mb-5 flex items-center gap-2">
+                            <i data-lucide="cooking-pot" class="w-4 h-4"></i> Cooking Steps
+                        </h4>
+                        <ol class="space-y-5">
+                            <li ng-repeat="step in currentMeal.recipe.steps" class="text-sm text-slate-600 leading-relaxed">
+                                <span class="text-[10px] font-black text-slate-400 block mb-1 uppercase">Step {{$index + 1}}</span>
+                                {{step}}
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+  
+
+    <script>
+        lucide.createIcons();
+        var app = angular.module('VitalityDash', []);
+
+        app.controller('HubController', function($scope, $timeout) {
+    $scope.userName = localStorage.getItem('v_active_name') || 'Member';
+    $scope.form = { diet: 'Standard', goal: 'Maintenance' };
+    $scope.currentMeal = null;
+    $scope.showRecipe = false;
+$scope.logout = function() {
+        // 1. Clear the stored name so the next person starts fresh
+        localStorage.removeItem('v_active_name');
+        
+        // 2. Redirect to the landing page
+        $window.location.href = 'index.html';
+    };
+
+    // Hydration Logic Variables
+    $scope.waterIntake = 0;
+    $scope.waterGoal = 2.5;
+
+    // Function to add water and keep decimals clean
+    $scope.addWater = function(amount) {
+        $scope.waterIntake = parseFloat(($scope.waterIntake + amount).toFixed(2));
+        
+        // Optional: Save to localStorage so it stays after refresh
+        localStorage.setItem('v_water', $scope.waterIntake);
+    };
+
+    // Calculate percentage for the progress bar
+    $scope.getWaterProgress = function() {
+        let percent = ($scope.waterIntake / $scope.waterGoal) * 100;
+        return Math.min(100, percent); // Cap at 100%
+    };
+
+    // Load saved water on start
+    const savedWater = localStorage.getItem('v_water');
+    if (savedWater) $scope.waterIntake = parseFloat(savedWater);
+
+    // Expanded Database with Recipes
+    const mealDatabase = [
+        { 
+            name: 'Grilled Lemon Salmon', 
+            type: 'Standard', 
+            image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800', 
+            calories: 420, protein: 38, carbs: 10, fats: 18,
+            recipe: {
+                ingredients: ['200g Fresh Salmon', '1/2 Lemon', '1 tsp Olive Oil', 'Asparagus spears', 'Sea Salt & Pepper'],
+                steps: ['Season salmon with salt, pepper and lemon juice.', 'Heat olive oil in a pan over medium heat.', 'Sear salmon for 4-5 mins per side until golden.', 'Steam asparagus for 3 mins and serve.']
+            }
+        },
+        { 
+            name: 'Garden Harvest Bowl', 
+            type: 'Vegan', 
+            image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800', 
+            calories: 340, protein: 15, carbs: 50, fats: 12,
+            recipe: {
+                ingredients: ['1 cup Cooked Quinoa', '1/2 Avocado', 'Handful Spinach', 'Chickpeas', 'Tahini Dressing'],
+                steps: ['Layer quinoa as the base of the bowl.', 'Top with sliced avocado, chickpeas and fresh spinach.', 'Drizzle generously with tahini dressing.', 'Mix and enjoy fresh.']
+            }
+        }
+    ];
+
+    $scope.generateMeal = function() {
+        $scope.currentMeal = null;
+        $timeout(() => {
+            const filtered = mealDatabase.filter(m => m.type === $scope.form.diet);
+            $scope.currentMeal = filtered.length > 0 ? filtered[0] : mealDatabase[0];
+            $timeout(() => { lucide.createIcons(); }, 10);
+        }, 800);
+    };
+
+    // Modal Controls
+    $scope.openRecipe = function() {
+        $scope.showRecipe = true;
+        $timeout(() => { lucide.createIcons(); }, 10);
+    };
+
+    $scope.closeRecipe = function() {
+        $scope.showRecipe = false;
+    };
+});
+    </script>
+</body>
+</html>

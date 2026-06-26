@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="VitalityApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VitalityAI | AI Meal Gallery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { light: '#F7FCF8', medium: '#4CAF50', dark: '#2E7D32' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Quicksand', sans-serif; background-color: #F7FCF8; }
+        
+        /* 3D Flip Card Logic */
+        .flip-card { background-color: transparent; perspective: 1000px; height: 450px; }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.8s; transform-style: preserve-3d; cursor: pointer; }
+        .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 2.5rem; overflow: hidden; }
+        .flip-card-back { background-color: white; transform: rotateY(180deg); display: flex; flex-direction: column; justify-content: center; padding: 2rem; border: 2px solid #4CAF50; }
+/* Update this section in your code */
+.ingredient-pill { 
+    transition: all 0.3s ease; 
+    border: 1px solid rgba(76, 175, 80, 0.1); 
+    /* This line forces the hand icon */
+    cursor: pointer !important; 
+}
+
+.ingredient-pill:hover { 
+    transform: translateY(-5px); 
+    background: rgba(76, 175, 80, 0.15); 
+    border-color: rgba(76, 175, 80, 0.4);
+    backdrop-filter: blur(4px);
+    color: #2E7D32; 
+    box-shadow: 0 10px 20px rgba(76, 175, 80, 0.1);
+}
+       
+    </style>
+</head>
+<body ng-controller="GalleryController" class="p-4 md:p-10">
+
+    <header class="max-w-7xl mx-auto mb-16 flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-800">Chef <span class="text-brand-medium">Vitality</span></h1>
+            <p class="text-gray-500 mt-2 italic">Precision nutrition, calculated by AI.</p>
+        </div>
+        <a href="dashboard.html" class="bg-white px-6 py-2 rounded-full shadow-sm font-bold border hover:bg-gray-50 transition">← Back</a>
+    </header>
+
+    <section class="max-w-7xl mx-auto mb-20">
+        <div class="flex items-center gap-3 mb-10">
+            <span class="text-3xl">⭐</span>
+            <h2 class="text-3xl font-bold text-gray-800">AI Recommended Today</h2>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-10">
+            <div class="flip-card" ng-repeat="meal in dailyRecommendations">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front shadow-xl shadow-green-100">
+                        <img ng-src="{{meal.image}}" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8 text-left">
+                            <span class="bg-brand-medium text-white text-[10px] font-bold px-3 py-1 rounded-full w-fit mb-2 uppercase tracking-widest">{{meal.time}}</span>
+                            <h3 class="text-white text-2xl font-bold">{{meal.name}}</h3>
+                            <p class="text-green-200 text-sm mt-1">Hover to see recipe & macros</p>
+                        </div>
+                    </div>
+                    <div class="flip-card-back shadow-2xl">
+                        <h4 class="font-bold text-brand-dark text-xl mb-4">Cooking Guide</h4>
+                        <ul class="text-left text-sm text-gray-600 space-y-2 mb-6">
+                            <li ng-repeat="step in meal.steps">• {{step}}</li>
+                        </ul>
+                        <div class="grid grid-cols-3 gap-2 pt-4 border-t">
+                            <div class="text-center"><p class="text-[10px] text-gray-400 font-bold uppercase">Prot</p><p class="font-bold text-brand-medium">{{meal.p}}g</p></div>
+                            <div class="text-center"><p class="text-[10px] text-gray-400 font-bold uppercase">Carb</p><p class="font-bold text-blue-500">{{meal.c}}g</p></div>
+                            <div class="text-center"><p class="text-[10px] text-gray-400 font-bold uppercase">Fat</p><p class="font-bold text-orange-500">{{meal.f}}g</p></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+   <section class="max-w-7xl mx-auto bg-white dark:bg-gray-900 rounded-[3rem] p-10 md:p-16 shadow-soft border border-green-50 dark:border-gray-800 transition-colors">
+    <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-4">Essential Daily Ingredients</h2>
+        <p class="text-gray-500 dark:text-gray-400">The core building blocks for your AI-optimized diet.</p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+        <div ng-repeat="ing in ingredients" 
+             ng-mouseenter="ing.showMacros = true" 
+             ng-mouseleave="ing.showMacros = false"
+             class="ingredient-pill relative bg-gray-50 dark:bg-gray-800 p-6 rounded-[2rem] text-center border border-gray-100 dark:border-gray-700 shadow-sm cursor-help overflow-hidden h-40 flex flex-col justify-center transition-all duration-300">
+            
+            <div ng-show="!ing.showMacros" class="animate-in fade-in zoom-in duration-300">
+                <div class="text-4xl mb-3">{{ing.icon}}</div>
+                <p class="font-bold text-sm text-gray-700 dark:text-gray-200">{{ing.name}}</p>
+                <p class="text-[10px] text-brand-medium font-bold mt-1">{{ing.benefit}}</p>
+            </div>
+
+            <div ng-show="ing.showMacros" class="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Per 100g</p>
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[11px] px-2">
+                        <span class="text-brand-medium font-bold">Prot:</span>
+                        <span class="dark:text-white">{{ing.p}}g</span>
+                    </div>
+                    <div class="flex justify-between text-[11px] px-2">
+                        <span class="text-blue-500 font-bold">Vit:</span>
+                        <span class="dark:text-white">{{ing.v}}%</span>
+                    </div>
+                    <div class="flex justify-between text-[11px] px-2">
+                        <span class="text-orange-500 font-bold">Fat:</span>
+                        <span class="dark:text-white">{{ing.f}}g</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+    <section class="max-w-5xl mx-auto mb-20 px-8">
+    <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-gray-800">The Vitality Pyramid</h2>
+        <p class="text-gray-500 mt-2">Our AI calculates your portions based on these core tiers.</p>
+    </div>
+
+    <div class="relative flex flex-col items-center">
+        <div class="w-32 h-20 bg-orange-400 rounded-t-full mb-2 flex flex-col items-center justify-center text-white shadow-lg hover:scale-105 transition-transform group cursor-help">
+            <span class="text-2xl">🥑</span>
+            <span class="text-[10px] font-bold uppercase">Healthy Fats</span>
+            <div class="absolute hidden group-hover:block bg-gray-900 text-white text-xs p-2 rounded-lg -top-10">10-15% of Daily Intake</div>
+        </div>
+
+        <div class="w-64 h-24 bg-brand-medium mb-2 flex flex-col items-center justify-center text-white shadow-lg hover:scale-105 transition-transform group cursor-help">
+            <span class="text-3xl">🍗</span>
+            <span class="text-xs font-bold uppercase tracking-widest">Proteins</span>
+            <div class="absolute hidden group-hover:block bg-gray-900 text-white text-xs p-2 rounded-lg left-full ml-4">25-30% for Muscle Recovery</div>
+        </div>
+
+        <div class="w-[450px] max-w-full h-28 bg-green-600 mb-2 flex flex-col items-center justify-center text-white shadow-lg hover:scale-105 transition-transform group cursor-help">
+            <span class="text-3xl">🥦</span>
+            <span class="text-sm font-bold uppercase tracking-widest">Vitamins & Fiber</span>
+            <div class="absolute hidden group-hover:block bg-gray-900 text-white text-xs p-2 rounded-lg right-full mr-4">40% Micronutrient Density</div>
+        </div>
+
+        <div class="w-[600px] max-w-full h-32 bg-yellow-600 rounded-b-3xl flex flex-col items-center justify-center text-white shadow-lg hover:scale-105 transition-transform group cursor-help">
+            <span class="text-4xl">🍞</span>
+            <span class="text-base font-bold uppercase tracking-widest">Complex Carbs</span>
+            <div class="absolute hidden group-hover:block bg-gray-900 text-white text-xs p-2 rounded-lg -bottom-10">Fuel & Energy Source</div>
+        </div>
+    </div>
+</section>
+
+    <footer class="text-center py-20 text-gray-400 text-sm">
+        Generated with AI Precision &bull; VitalityAI 2026
+    </footer>
+
+    <script>
+        var app = angular.module('VitalityApp', []);
+        app.controller('GalleryController', function($scope) {
+            
+            // AI Daily Meals
+            $scope.dailyRecommendations = [
+                {
+                    time: 'Breakfast',
+                    name: 'Super-Green Omelette',
+                    image: 'https://images.unsplash.com/photo-1510629954389-c1e0da47d414?w=500',
+                    p: 22, c: 12, f: 18,
+                    steps: ['Whisk 3 eggs with spinach', 'Add feta and avocado', 'Cook on low heat for 4 mins']
+                },
+                {
+                    time: 'Lunch',
+                    name: 'Mediterranean Quinoa',
+                    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
+                    p: 28, c: 45, f: 14,
+                    steps: ['Boil quinoa in veg broth', 'Toss with chickpeas & olives', 'Drizzle lemon-tahini sauce']
+                },
+                {
+                    time: 'Dinner',
+                    name: 'Lemon Butter Salmon',
+                    image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=500',
+                    p: 45, c: 8, f: 22,
+                    steps: ['Sear salmon for 3 mins/side', 'Steam asparagus with garlic', 'Finish with fresh parsley']
+                }
+            ];
+
+            // Healthy Ingredients
+           $scope.ingredients = [
+    { name: 'Avocado', icon: '🥑', benefit: 'Healthy Fats', p: 2, v: 15, f: 15, showMacros: false },
+    { name: 'Blueberries', icon: '🫐', benefit: 'Antioxidants', p: 1, v: 25, f: 0.3, showMacros: false },
+    { name: 'Spinach', icon: '🥬', benefit: 'Iron & Fiber', p: 3, v: 45, f: 0.4, showMacros: false },
+    { name: 'Greek Yogurt', icon: '🥛', benefit: 'Probiotics', p: 10, v: 5, f: 0.4, showMacros: false },
+    { name: 'Walnuts', icon: '🌰', benefit: 'Brain Fuel', p: 15, v: 2, f: 65, showMacros: false },
+    { name: 'Chia Seeds', icon: '🌱', benefit: 'Omega-3', p: 17, v: 0, f: 31, showMacros: false },
+    { name: 'Sweet Potato', icon: '🍠', benefit: 'Complex Carbs', p: 1.6, v: 100, f: 0.1, showMacros: false },
+    { name: 'Garlic', icon: '🧄', benefit: 'Immunity', p: 6, v: 10, f: 0.5, showMacros: false },
+    { name: 'Turmeric', icon: '🧂', benefit: 'Anti-Inflam', p: 8, v: 5, f: 10, showMacros: false },
+    { name: 'Lentils', icon: '🍲', benefit: 'Plant Protein', p: 9, v: 8, f: 0.4, showMacros: false },
+    { name: 'Olive Oil', icon: '🫒', benefit: 'Heart Health', p: 0, v: 12, f: 100, showMacros: false },
+    { name: 'Eggs', icon: '🥚', benefit: 'Clean Protein', p: 13, v: 10, f: 11, showMacros: false }
+];
+        });
+        
+    </script>
+    
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="VitalityApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VitalityAI | Sign In</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { light: '#F7FCF8', medium: '#4CAF50', dark: '#2E7D32' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Quicksand', sans-serif; overflow: hidden; background-color: #F0F4F1; }
+        .bg-icon { position: absolute; opacity: 0.15; z-index: -1; animation: float 10s ease-in-out infinite; pointer-events: none; }
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-40px) rotate(10deg); } }
+        
+        /* Popup Animation */
+        .popup-box { transform: translateY(-200%); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .popup-box.active { transform: translateY(0); }
+
+        /* Compact Form Container */
+        .auth-card { width: 100%; max-width: 420px; border-radius: 2.5rem; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body ng-controller="MainController" class="h-screen flex items-center justify-center p-6">
+
+    <div class="bg-icon text-6xl top-10 left-10">🥦</div>
+    <div class="bg-icon text-8xl top-20 right-20">🥗</div>
+    <div class="bg-icon text-5xl bottom-20 left-20">🍎</div>
+    <div class="bg-icon text-7xl bottom-10 right-10">🥑</div>
+
+    <div class="fixed top-8 left-0 right-0 z-[100] flex justify-center pointer-events-none px-4">
+        <div id="statusPopup" class="popup-box bg-white border-b-4 border-brand-medium px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 pointer-events-auto">
+            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</div>
+            <div>
+                <h4 class="font-bold text-gray-800 text-sm" ng-bind="popupTitle"></h4>
+                <p class="text-xs text-gray-500" ng-bind="popupMsg"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-card shadow-[0_20px_60px_rgba(0,0,0,0.1)] border border-white p-8 md:p-10 relative z-10">
+        
+        <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-brand-medium rounded-2xl flex items-center justify-center text-white font-bold mx-auto mb-4 shadow-lg shadow-green-100">V</div>
+            <h2 class="text-2xl font-bold text-gray-800" ng-show="isLoginView">Welcome Back</h2>
+            <h2 class="text-2xl font-bold text-gray-800" ng-hide="isLoginView">Join Vitality</h2>
+            <p class="text-sm text-gray-400 mt-1">Smart Nutrition for a better you.</p>
+        </div>
+
+        <div ng-show="isLoginView" class="animate-in">
+            <form class="space-y-4">
+                <div class="relative">
+                    <input type="email" ng-model="loginEmail" placeholder="Email" class="w-full px-5 py-3.5 rounded-2xl bg-gray-50 border border-gray-100 outline-none focus:bg-white focus:ring-2 ring-brand-medium/20 transition-all text-sm">
+                </div>
+                <div class="relative">
+                    <input type="password" ng-model="loginPass" placeholder="Password" class="w-full px-5 py-3.5 rounded-2xl bg-gray-50 border border-gray-100 outline-none focus:bg-white focus:ring-2 ring-brand-medium/20 transition-all text-sm">
+                </div>
+               <button type="button" ng-click="doLogin()" class="w-full bg-brand-medium text-white font-bold py-3.5 rounded-2xl shadow-lg hover:bg-brand-dark transition-all active:scale-95 text-sm mt-2">
+    Sign In
+</button>
+            </form>
+            <div class="mt-8 text-center">
+                <p class="text-xs text-gray-400">Don't have an account? <button ng-click="isLoginView = false" class="text-brand-medium font-bold hover:underline">Register now</button></p>
+            </div>
+        </div>
+
+        <div ng-hide="isLoginView">
+            <form class="space-y-4">
+                <input type="text" ng-model="regName" placeholder="Full Name" class="w-full px-5 py-3.5 rounded-2xl bg-gray-50 border border-gray-100 outline-none focus:bg-white focus:ring-2 ring-brand-medium/20 text-sm">
+                <input type="email" ng-model="regEmail" placeholder="Email Address" class="w-full px-5 py-3.5 rounded-2xl bg-gray-50 border border-gray-100 outline-none focus:bg-white focus:ring-2 ring-brand-medium/20 text-sm">
+                <input type="password" ng-model="regPass" placeholder="Password" class="w-full px-5 py-3.5 rounded-2xl bg-gray-50 border border-gray-100 outline-none focus:bg-white focus:ring-2 ring-brand-medium/20 text-sm">
+                <button type="button" ng-click="doRegister()" class="w-full bg-brand-medium text-white font-bold py-3.5 rounded-2xl shadow-lg hover:bg-brand-dark transition-all active:scale-95 text-sm mt-2">
+                    Create Account
+                </button>
+            </form>
+            <div class="mt-8 text-center">
+                <p class="text-xs text-gray-400">Already a member? <button ng-click="isLoginView = true" class="text-brand-medium font-bold hover:underline">Log in</button></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var app = angular.module('VitalityApp', []);
+
+        app.controller('MainController', function($scope, $timeout) {
+            $scope.isLoginView = true;
+            
+            // LocalStorage Persistence
+            var storedUsers = localStorage.getItem('v_users');
+            $scope.users = storedUsers ? JSON.parse(storedUsers) : [
+                {name: 'Admin', email: 'test@me.com', pass: '1234'}
+            ];
+
+            function triggerPopup(title, msg) {
+                $scope.popupTitle = title;
+                $scope.popupMsg = msg;
+                const popup = document.getElementById('statusPopup');
+                popup.classList.add('active');
+                $timeout(() => popup.classList.remove('active'), 3000);
+            }
+
+            // Login Logic inside your controller
+$scope.doLogin = function() {
+    // Check if user exists in our array
+    var user = $scope.users.find(u => u.email === $scope.loginEmail && u.pass === $scope.loginPass);
+    
+    if (user) {
+        // 1. Show the success popup first
+        triggerPopup("Login Successful", "Welcome back, " + user.name + "!");
+
+        // 2. Wait 1.5 seconds so the user can see the nice popup, then redirect
+        setTimeout(function() {
+            window.location.href = 'dashboard.html';
+        }, 1500);
+        
+    } else {
+        // If login fails
+        alert("Invalid credentials.");
+    }
+};
+
+            $scope.doRegister = function() {
+                if (!$scope.regName || !$scope.regEmail || !$scope.regPass) return alert("Fill all fields!");
+                
+                var newUser = { name: $scope.regName, email: $scope.regEmail, pass: $scope.regPass };
+                $scope.users.push(newUser);
+                localStorage.setItem('v_users', JSON.stringify($scope.users));
+                
+                triggerPopup("Account Created", "You can now log in!");
+                $timeout(() => { 
+                    $scope.isLoginView = true;
+                    $scope.regName = $scope.regEmail = $scope.regPass = "";
+                }, 1000);
+            };
+        });
+    </script>
+</body>
+</html>
